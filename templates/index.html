@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Яндекс.Диск Браузер</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<div class="container">
+    <h1>Просмотр файлов на Яндекс.Диске</h1>
+    <form method="GET" action="/">
+        <label for="public_key">Введите публичную ссылку:</label>
+        <input type="text" id="public_key" name="public_key" value="{{ public_key }}" required>
+        <button type="submit">Загрузить</button>
+    </form>
+
+    {% if public_key %}
+    <form method="GET" action="/">
+        <input type="hidden" name="public_key" value="{{ public_key }}">
+        <input type="hidden" name="path" value="{{ current_path }}">
+        <label for="file_type">Фильтр:</label>
+        <select name="file_type" id="file_type" onchange="this.form.submit()">
+            <option value="">Все файлы</option>
+            <option value="documents" {% if file_type == 'documents' %}selected{% endif %}>Документы</option>
+            <option value="images" {% if file_type == 'images' %}selected{% endif %}>Изображения</option>
+        </select>
+    </form>
+
+    <h2>Текущий путь: {{ current_path or '/' }}</h2>
+    <form method="POST" action="/download-multiple">
+        <input type="hidden" name="public_key" value="{{ public_key }}">
+        <ul>
+            {% if current_path %}
+            <li>
+                <a href="/?public_key={{ public_key }}&path={{ current_path.rsplit('/', 1)[0] }}">⬆️ Вверх</a>
+            </li>
+            {% endif %}
+            {% for file in files %}
+            <li>
+                {% if file['type'] == 'dir' %}
+                📁 <a href="/?public_key={{ public_key }}&path={{ file['path'] }}&file_type={{ file_type }}">{{ file['name'] }}</a>
+                {% else %}
+                📄 {{ file['name'] }}
+                <input type="checkbox" name="file_paths" value="{{ file['path'] }}">
+                <a href="/download?public_key={{ public_key }}&file_path={{ file['path'] }}">Скачать</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        <button type="submit">Скачать выбранные файлы</button>
+    </form>
+    {% endif %}
+</div>
+</body>
+</html>
